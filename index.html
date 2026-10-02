@@ -4,12 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Malý hrdina">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#7cc7f2">
 <title>Malý hrdina</title>
 <style>
 :root{--bg:#eef2f7;--fg:#1f2937;--muted:#5b6575;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141922;--fg:#e5e9f0;--muted:#9aa5b6}}
 :root[data-theme="dark"]{--bg:#141922;--fg:#e5e9f0;--muted:#9aa5b6}
-html{scroll-padding-top:env(safe-area-inset-top,0px);overscroll-behavior:none}
+html{scroll-padding-top:env(safe-area-inset-top,0px);overscroll-behavior:none;touch-action:manipulation}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:"Trebuchet MS",Verdana,sans-serif;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
   padding:12px max(12px,env(safe-area-inset-right)) 12px max(12px,env(safe-area-inset-left));-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 #wrap{position:relative;width:100%;max-width:960px}
@@ -19,9 +23,12 @@ b{color:var(--fg)}
 .tc{display:none}
 #pad{display:none;justify-content:space-between;align-items:flex-end;gap:8px;margin-top:10px}
 #pad .grp{display:flex;gap:8px;align-items:flex-end}
-#pad button{width:clamp(44px,14vw,68px);height:clamp(44px,14vw,68px);border-radius:50%;border:2px solid rgba(255,255,255,.55);background:rgba(30,41,59,.62);color:#fff;font-size:28px;line-height:1;padding:0;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;font-family:inherit}
+#pad button{width:clamp(44px,13vw,68px);height:clamp(44px,13vw,68px);border-radius:50%;border:2px solid rgba(255,255,255,.55);background:rgba(30,41,59,.62);color:#fff;font-size:28px;line-height:1;padding:0;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;font-family:inherit}
 #pad button.on{background:rgba(59,130,246,.85)}
-#pad button.sm{width:clamp(30px,9vw,40px);height:clamp(30px,9vw,40px);font-size:18px}
+#pad button.sm{width:clamp(30px,8vw,40px);height:clamp(30px,8vw,40px);font-size:18px}
+#hint{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:24px;z-index:10}
+#hint[hidden]{display:none}
+#hint div{background:var(--bg);color:var(--fg);padding:18px 20px;border-radius:12px;max-width:420px;font-size:16px;line-height:1.45;text-align:center}
 @media (pointer:coarse){.kb{display:none}.tc{display:block}#pad{display:flex}}
 @media (pointer:coarse) and (orientation:landscape){
   body{padding-top:0;padding-bottom:0;gap:0}
@@ -38,10 +45,11 @@ b{color:var(--fg)}
 <canvas id="g" width="800" height="400" tabindex="0"></canvas>
 <div id="pad">
   <div class="grp"><button data-k="ArrowLeft" aria-label="Vlevo">◀</button><button data-k="ArrowRight" aria-label="Vpravo">▶</button></div>
-  <div class="grp"><button class="sm" data-k="KeyM" aria-label="Hudba">♪</button></div>
+  <div class="grp"><button class="sm" data-k="KeyM" aria-label="Hudba">♪</button><button class="sm" id="fs" aria-label="Celá obrazovka">⛶</button></div>
   <div class="grp"><button data-k="ArrowDown" aria-label="Skrčit">▼</button><button data-k="ArrowUp" aria-label="Skok">▲</button><button data-k="ShiftLeft" aria-label="Útok">⚔</button></div>
 </div>
 </div>
+<div id="hint" hidden><div>Safari na iPhonu nepodporuje celou obrazovku pro webové stránky. Klepni na ikonu Sdílet (čtvereček se šipkou), vyber „Přidat na plochu“ a hru pak spouštěj z ikony na ploše. Poběží bez lišt prohlížeče.<br><br>Klepnutím okno zavřeš.</div></div>
 <p class="kb"><b>←/→</b> pohyb · <b>↑</b> skok · <b>↓</b> skrčení · <b>Shift</b> seknutí mečem. Dojdi k vlajce na konci levelu. Po každých 15 zabitých příšerách dostaneš na 5 s náhodnou zbraň a Shift střílí. Po každých 20 zabitých příšerách dostaneš na 25 s náklaďák, kterým příšery rozjedeš. <b>M</b> hudba. Pro ovládání klikni do hry.</p>
 <p class="tc">Tlačítky ovládáš hrdinu: ▲ skok, ▼ skrčení, ⚔ seknutí mečem (se zbraní střelba), ♪ hudba. Po 15 zabitých příšerách dostaneš na 5 s zbraň a po 20 na 25 s náklaďák. Nejlepší je telefon otočit na šířku.</p>
 <script>
@@ -95,7 +103,7 @@ addEventListener('keydown',e=>{
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();
   press(e.code,e.repeat);
 });
-document.querySelectorAll('#pad button').forEach(btn=>{
+document.querySelectorAll('#pad button[data-k]').forEach(btn=>{
   const k=btn.dataset.k;
   btn.addEventListener('pointerdown',e=>{e.preventDefault();btn.setPointerCapture(e.pointerId);btn.classList.add('on');press(k,false);if(k==='KeyM')keys.KeyM=false});
   const up=e=>{btn.classList.remove('on');keys[k]=false;startMusic()};
@@ -105,6 +113,27 @@ document.querySelectorAll('#pad button').forEach(btn=>{
 c.addEventListener('pointerdown',()=>{press('Enter',false);keys.Enter=false});
 document.addEventListener('pointerup',()=>startMusic());
 document.addEventListener('touchend',()=>startMusic());
+document.addEventListener('click',()=>startMusic());
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&AC&&AC.state!=='running')AC.resume()});
+// iOS: zákaz přiblížení dvojklepem a štípnutím
+let lastTE=0;
+document.addEventListener('touchend',e=>{
+  const n=Date.now();
+  if(n-lastTE<400&&!(e.target.closest&&e.target.closest('#fs,#hint')))e.preventDefault();
+  lastTE=n;
+},{passive:false});
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault()));
+// celá obrazovka
+const fsBtn=document.getElementById('fs'),hint=document.getElementById('hint');
+if(navigator.standalone)fsBtn.style.display='none';
+fsBtn.addEventListener('click',()=>{
+  const d=document,el=d.documentElement;
+  if(d.fullscreenElement||d.webkitFullscreenElement){(d.exitFullscreen||d.webkitExitFullscreen).call(d);return}
+  const rq=el.requestFullscreen||el.webkitRequestFullscreen;
+  if(rq){try{const r=rq.call(el);if(r&&r.catch)r.catch(()=>{hint.hidden=false})}catch(e){hint.hidden=false}}
+  else hint.hidden=false;
+});
+hint.addEventListener('click',()=>{hint.hidden=true});
 addEventListener('keyup',e=>{keys[e.code]=false});
 addEventListener('blur',()=>{keys={}});
 c.addEventListener('mousedown',()=>c.focus());
@@ -140,16 +169,36 @@ function sched(){
     mStep++;mNext+=E;
   }
 }
-function startMusic(){
-  if(AC){if(AC.state==='suspended')AC.resume();return}
+const IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+let silentEl=null,silentOn=false;
+function silentAudio(){
+  if(!IOS||silentOn)return;
   try{
-    AC=new(window.AudioContext||window.webkitAudioContext)();
-    if(AC.state==='suspended')AC.resume();
-    mGain=AC.createGain();mGain.gain.value=musicOn?0.18:0;mGain.connect(AC.destination);
-    noiseBuf=AC.createBuffer(1,AC.sampleRate*0.2,AC.sampleRate);
-    const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
-    mNext=AC.currentTime+0.1;setInterval(sched,50);
-  }catch(e){AC=null}
+    if(!silentEl){
+      const n=8000,bf=new ArrayBuffer(44+n*2),v=new DataView(bf),w=(o,t)=>{for(let i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i))};
+      w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+      v.setUint32(24,8000,true);v.setUint32(28,16000,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
+      silentEl=new Audio(URL.createObjectURL(new Blob([bf],{type:'audio/wav'})));silentEl.loop=true;
+    }
+    const r=silentEl.play();if(r&&r.then)r.then(()=>{silentOn=true}).catch(()=>{});
+  }catch(e){}
+}
+function startMusic(){
+  try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+  if(!AC){
+    try{
+      AC=new(window.AudioContext||window.webkitAudioContext)();
+      mGain=AC.createGain();mGain.gain.value=musicOn?0.18:0;mGain.connect(AC.destination);
+      noiseBuf=AC.createBuffer(1,AC.sampleRate*0.2,AC.sampleRate);
+      const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+      mNext=AC.currentTime+0.1;setInterval(sched,50);
+    }catch(e){AC=null;return}
+  }
+  if(AC.state!=='running'){
+    AC.resume();
+    try{const sn=AC.createBufferSource();sn.buffer=AC.createBuffer(1,1,22050);sn.connect(AC.destination);sn.start(0)}catch(e){}
+  }
+  silentAudio();
 }
 
 
